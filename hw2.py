@@ -58,9 +58,59 @@ def perceptron(data, labels, params={}, hook=None):
     return th.reshape(-1, 1), np.array([[th0]])
 
 
+def averaged_perceptron(data, labels, params={}, hook=None):
+    m = data.shape[0]  # number of features
+    n = data.shape[1]  # number of data
+    th = np.zeros(m)
+    th0 = 0
+
+    ths = np.zeros(m)
+    th0s = 0
+    T = params.get('T', 100)
+    for _ in range(T):
+        for i in range(n):
+            xi = data[:, i]
+            yi = labels[0, i]
+            if is_mistake(th, th0, xi, yi):
+                th, th0 = update_thetas(th, th0, xi, yi)
+            ths += th
+            th0s += th0
+
+    return (ths/(n*T)).reshape(-1, 1), np.array([[th0s/(n*T)]])
+
+
+def score(data, labels, th, th0):
+    return 5
+    pass
+
+
+def eval_classifier(learner, data_train, labels_train, data_test, labels_test):
+    th, th0 = learner(data_train, labels_train)
+
+    return score(data_test, labels_test, th, th0) / len(labels_train[0])
+
+
+def xval_learning_alg(learner, data, labels, k):
+    scores = 0
+    k_data = np.array_split(data, k, axis=1)
+    l_data = np.array_split(labels, k, axis=1)
+
+    for i in range(k):
+        d_minus_j = np.concatenate([k_data[di]
+                                   for di in range(k) if di != i], axis=1)
+        l_minus_j = np.concatenate(
+            [l_data[li] for li in range(k) if li != i], axis=1)
+        th, th0 = learner(d_minus_j, l_minus_j)
+        j_score = score(k_data[i], l_data[i], th, th0) / len(l_data[i][0])
+        scores += j_score
+    return scores / k
+
+
 def main():
     # format_data(data1)
-    print(perceptron(data1, labels1, {'T': 100}))
+    # print(perceptron(data1, labels1, {'T': 100}))
+    # print(eval_classifier(perceptron, data1, labels1, data2, labels2))
+    print(xval_learning_alg(perceptron, data1, labels1, 3))
 
 
 main()
