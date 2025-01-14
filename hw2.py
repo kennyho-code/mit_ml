@@ -1,4 +1,5 @@
 import numpy as np
+from code_for_hw02_downloadable import gen_flipped_lin_separable
 
 data1, labels1, data2, labels2 = \
     (np.array([[-2.97797707,  2.84547604,  3.60537239, -1.72914799, -2.51139524,
@@ -48,6 +49,7 @@ def perceptron(data, labels, params={}, hook=None):
     th = np.zeros(n)
     th0 = 0
     T = params.get('T', 100)
+
     for _ in range(T):
         for i in range(m):
             xi = data[:, i]
@@ -84,6 +86,17 @@ def score(data, labels, th, th0):
     pass
 
 
+def eval_learning_alg(learner, data_gen, n_train, n_test, it):
+    scores = 0
+    for _ in range(it):
+        data_train, labels_train = data_gen(n_train)
+        data_test, labels_test = data_gen(n_test)
+        th, th0 = learner(data_train, labels_train)
+        scores += score(data_test, labels_test, th, th0) / len(labels_test[0])
+
+    return scores/it
+
+
 def eval_classifier(learner, data_train, labels_train, data_test, labels_test):
     th, th0 = learner(data_train, labels_train)
 
@@ -106,11 +119,20 @@ def xval_learning_alg(learner, data, labels, k):
     return scores / k
 
 
+def test():
+    # data, labels = data_generator()
+    print(eval_learning_alg(averaged_perceptron,
+          gen_flipped_lin_separable(pflip=0.01), 20, 20, 5))
+
+    # res = eval_learning_alg(perceptron, data_generator, 10, 10, 5)
+
+
 def main():
     # format_data(data1)
     # print(perceptron(data1, labels1, {'T': 100}))
     # print(eval_classifier(perceptron, data1, labels1, data2, labels2))
-    print(xval_learning_alg(perceptron, data1, labels1, 3))
+    # print(xval_learning_alg(perceptron, data1, labels1, 3))
+    test()
 
 
 main()
